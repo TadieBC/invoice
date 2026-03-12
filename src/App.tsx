@@ -8,7 +8,6 @@ import { InvoiceData, TemplateType } from './types';
 import { generateInvoiceData } from './services/ai';
 import { useReactToPrint } from 'react-to-print';
 import { FileText, Edit3, Download, Printer, Loader2, ArrowLeft } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
 
 export default function App() {
   const [step, setStep] = useState<'template-selection' | 'generation'>('template-selection');
@@ -57,17 +56,70 @@ export default function App() {
     documentTitle: invoice?.invoice_meta?.invoiceNumber ? `Invoice-${invoice.invoice_meta.invoiceNumber}` : 'Invoice',
   });
 
-  const handleDownloadPDF = () => {
-    if (!printRef.current) return;
-    const element = printRef.current;
-    const opt = {
-      margin: 0,
-      filename: invoice?.invoice_meta?.invoiceNumber ? `Invoice-${invoice.invoice_meta.invoiceNumber}.pdf` : 'Invoice.pdf',
-      image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
-    };
-    html2pdf().set(opt).from(element).save();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const getSmartFilename = () => {
+    if (!invoice) return 'Invoice.pdf';
+    
+    // 1. Receiver Company
+    let receiverName = invoice.buyer?.name || 'Buyer';
+    receiverName = receiverName.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+    
+    // 2. Product Category
+    let productLabel = 'Goods';
+    if (invoice.items && invoice.items.length > 0) {
+      productLabel = invoice.items[0].item || 'Goods';
+      productLabel = productLabel.split(' ')[0]; // Take first word for brevity
+      productLabel = productLabel.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+    }
+    
+    // 3. Invoice Number
+    let invoiceNo = invoice.invoice_meta?.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`;
+    invoiceNo = invoiceNo.replace(/[^a-zA-Z0-9-]/g, '_');
+    
+    // 4. Date
+    let date = invoice.invoice_meta?.issueDate || new Date().toISOString().split('T')[0];
+    date = date.replace(/[^a-zA-Z0-9-]/g, '_');
+    
+    let filename = `${receiverName}_${productLabel}_${invoiceNo}_${date}.pdf`;
+    
+    // Clean up filename
+    filename = filename.replace(/_+/g, '_').replace(/^_|_$/g, '');
+    
+    return filename;
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!printRef.current || !invoice) return;
+    
+    setIsDownloading(true);
+    try {
+      const element = printRef.current;
+      const filename = getSmartFilename();
+      
+      const opt = {
+        margin: 0,
+        filename: filename,
+        image: { type: 'jpeg' as const, quality: 1 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          letterRendering: true,
+          scrollY: 0,
+          windowWidth: 800 // Force width to match preview
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+      
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default || html2pdfModule;
+      await (html2pdf as any)().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      alert('Failed to generate PDF. Please try again or use the Print option.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleGenerate = async (prompt: string, files: { data: string; mimeType: string }[]) => {
@@ -99,6 +151,35 @@ export default function App() {
 
   const handleTemplateSelect = (selectedTemplate: TemplateType) => {
     setTemplate(selectedTemplate);
+    
+    // If we already have an invoice, update its template settings to match the new template
+    if (invoice) {
+      const templateColors: Record<TemplateType, string> = {
+        minimal: '#0f172a',
+        luxury: '#18181b',
+        premium_export: '#0369a1',
+        bold_branded: '#b45309',
+        light_elegant: '#1d4ed8',
+        dark_professional: '#4c1d95'
+      };
+      
+      const newColor = templateColors[selectedTemplate] || primaryColor;
+      setPrimaryColor(newColor);
+      
+      setInvoice({
+        ...invoice,
+        template_settings: {
+          ...invoice.template_settings,
+          id: selectedTemplate,
+          primaryColor: newColor,
+          accentColor: newColor,
+          fontPairing: selectedTemplate === 'luxury' || selectedTemplate === 'light_elegant' ? 'classic' : 'modern',
+          tableStyle: selectedTemplate === 'premium_export' || selectedTemplate === 'dark_professional' ? 'striped' : selectedTemplate === 'bold_branded' ? 'bordered' : 'minimal',
+          headerLayout: selectedTemplate === 'light_elegant' ? 'split' : selectedTemplate === 'minimal' ? 'minimal' : 'standard',
+        }
+      });
+    }
+    
     setStep('generation');
   };
 
@@ -106,7 +187,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pb-20 selection:bg-indigo-500/30">
       {/* Header */}
       <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {step === 'generation' && (
               <button 
@@ -136,17 +217,18 @@ export default function App() {
               </button>
               <button
                 onClick={handleDownloadPDF}
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm shadow-indigo-500/20"
+                disabled={isDownloading}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Download className="w-4 h-4" />
-                Download PDF
+                {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                {isDownloading ? 'Generating...' : 'Download PDF'}
               </button>
             </div>
           )}
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {step === 'template-selection' ? (
           <TemplatePicker onSelect={handleTemplateSelect} />
         ) : (
@@ -236,18 +318,18 @@ export default function App() {
 
                   {/* Content */}
                   <div className="p-6 bg-slate-100/5">
-                    {activeTab === 'preview' ? (
-                      <div className="overflow-x-auto pb-4 custom-scrollbar">
-                        <div className="min-w-[800px] rounded-lg shadow-2xl overflow-hidden">
-                          <InvoicePreview 
-                            ref={printRef} 
-                            data={invoice} 
-                            template={template} 
-                            primaryColor={primaryColor} 
-                          />
-                        </div>
+                    <div className={`overflow-x-auto pb-4 custom-scrollbar ${activeTab === 'preview' ? 'block' : 'hidden'}`}>
+                      <div className="min-w-[800px] rounded-lg shadow-2xl overflow-hidden">
+                        <InvoicePreview 
+                          ref={printRef} 
+                          data={invoice} 
+                          template={template} 
+                          primaryColor={primaryColor} 
+                        />
                       </div>
-                    ) : (
+                    </div>
+                    
+                    {activeTab === 'edit' && (
                       <InvoiceEditor data={invoice} onChange={setInvoice} />
                     )}
                   </div>

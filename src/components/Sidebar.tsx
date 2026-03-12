@@ -17,10 +17,10 @@ interface SidebarProps {
 const TEMPLATES: { id: TemplateType; name: string }[] = [
   { id: 'minimal', name: 'Minimal Corporate' },
   { id: 'luxury', name: 'Luxury Dark' },
-  { id: 'international', name: 'International Trade' },
-  { id: 'manufacturing', name: 'Manufacturing Export' },
-  { id: 'logistics', name: 'Logistics Pro' },
-  { id: 'modern', name: 'Modern Elegant' },
+  { id: 'premium_export', name: 'Premium Export Trading' },
+  { id: 'bold_branded', name: 'Bold Branded' },
+  { id: 'light_elegant', name: 'Light Elegant' },
+  { id: 'dark_professional', name: 'Dark Accent Professional' },
 ];
 
 const COLORS = [
@@ -92,7 +92,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {TEMPLATES.map((t) => (
             <button
               key={t.id}
-              onClick={() => setTemplate(t.id)}
+              onClick={() => {
+                setTemplate(t.id);
+                const templateColors: Record<TemplateType, string> = {
+                  minimal: '#0f172a',
+                  luxury: '#18181b',
+                  premium_export: '#0369a1',
+                  bold_branded: '#b45309',
+                  light_elegant: '#1d4ed8',
+                  dark_professional: '#4c1d95'
+                };
+                const newColor = templateColors[t.id] || primaryColor;
+                setPrimaryColor(newColor);
+                onChange({
+                  ...invoice,
+                  template_settings: {
+                    ...invoice.template_settings,
+                    id: t.id,
+                    primaryColor: newColor,
+                    accentColor: newColor,
+                    fontPairing: t.id === 'luxury' || t.id === 'light_elegant' ? 'classic' : 'modern',
+                    tableStyle: t.id === 'premium_export' || t.id === 'dark_professional' ? 'striped' : t.id === 'bold_branded' ? 'bordered' : 'minimal',
+                    headerLayout: t.id === 'light_elegant' ? 'split' : t.id === 'minimal' ? 'minimal' : 'standard',
+                  }
+                });
+              }}
               className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all ${
                 template === t.id
                   ? 'bg-indigo-500/10 text-indigo-400 font-medium border border-indigo-500/30'

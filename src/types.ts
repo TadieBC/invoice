@@ -1,22 +1,33 @@
 export interface CompanyInfo {
   name: string;
+  contactPerson?: string;
   address: string;
-  email: string;
   phone: string;
+  email: string;
   taxId?: string;
   website?: string;
-  contactPerson?: string;
+  bankName?: string;
+  bankAddress?: string;
+  accountName?: string;
+  accountNumber?: string;
+  swiftCode?: string;
 }
 
 export interface InvoiceItem {
   id: string;
+  itemNumber?: string;
   item: string;
   description: string;
   model: string;
   specification: string;
+  hsCode?: string;
+  unit?: string;
   quantity: number;
   unitPrice: number;
   amount: number;
+  netWeight?: string;
+  grossWeight?: string;
+  cbm?: string;
 }
 
 export interface InvoiceMeta {
@@ -24,6 +35,23 @@ export interface InvoiceMeta {
   issueDate: string;
   dueDate: string;
   type: 'commercial' | 'proforma' | 'packing_list' | 'standard';
+  incoterm?: string;
+  paymentTerm?: string;
+  shipmentMethod?: string;
+  portOfLoading?: string;
+  portOfDischarge?: string;
+  countryOfOrigin?: string;
+  productCategory?: string;
+}
+
+export interface CommercialTerms {
+  ttTerms?: string;
+  bankTransferInstructions?: string;
+  validity?: string;
+  shippingTerms?: string;
+  deliveryLeadTime?: string;
+  packagingTerms?: string;
+  warrantyTerms?: string;
 }
 
 export interface TemplateSettings {
@@ -65,13 +93,14 @@ export interface InvoiceData {
   notes: string;
   payment_details: string;
   bank_details: string;
+  commercial_terms?: CommercialTerms;
   qr_payment_link?: string;
   logo?: string;
   template_settings: TemplateSettings;
   language_settings: LanguageSettings;
 }
 
-export type TemplateType = 'minimal' | 'luxury' | 'international' | 'manufacturing' | 'logistics' | 'modern';
+export type TemplateType = 'minimal' | 'luxury' | 'premium_export' | 'bold_branded' | 'light_elegant' | 'dark_professional';
 
 export interface AppState {
   invoice: InvoiceData | null;

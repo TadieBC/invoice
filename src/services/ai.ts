@@ -13,7 +13,14 @@ const invoiceSchema = {
         invoiceNumber: { type: Type.STRING, description: "Invoice number, generate a random one if not provided (e.g., INV-2023-001)" },
         issueDate: { type: Type.STRING, description: "Invoice date in YYYY-MM-DD format. Use today if not provided." },
         dueDate: { type: Type.STRING, description: "Due date in YYYY-MM-DD format." },
-        type: { type: Type.STRING, description: "commercial, proforma, packing_list, or standard" }
+        type: { type: Type.STRING, description: "commercial, proforma, packing_list, or standard" },
+        incoterm: { type: Type.STRING },
+        paymentTerm: { type: Type.STRING },
+        shipmentMethod: { type: Type.STRING },
+        portOfLoading: { type: Type.STRING },
+        portOfDischarge: { type: Type.STRING },
+        countryOfOrigin: { type: Type.STRING },
+        productCategory: { type: Type.STRING }
       }
     },
     currency: { type: Type.STRING, description: "Currency code (e.g., USD, RMB, EUR, NAD, ZWL)" },
@@ -26,7 +33,12 @@ const invoiceSchema = {
         phone: { type: Type.STRING },
         taxId: { type: Type.STRING },
         website: { type: Type.STRING },
-        contactPerson: { type: Type.STRING }
+        contactPerson: { type: Type.STRING },
+        bankName: { type: Type.STRING },
+        bankAddress: { type: Type.STRING },
+        accountName: { type: Type.STRING },
+        accountNumber: { type: Type.STRING },
+        swiftCode: { type: Type.STRING }
       }
     },
     buyer: {
@@ -46,13 +58,19 @@ const invoiceSchema = {
       items: {
         type: Type.OBJECT,
         properties: {
+          itemNumber: { type: Type.STRING },
           item: { type: Type.STRING, description: "Product or service name" },
           description: { type: Type.STRING },
           model: { type: Type.STRING },
           specification: { type: Type.STRING },
+          hsCode: { type: Type.STRING },
+          unit: { type: Type.STRING },
           quantity: { type: Type.NUMBER },
           unitPrice: { type: Type.NUMBER },
           amount: { type: Type.NUMBER, description: "quantity * unitPrice" },
+          netWeight: { type: Type.STRING },
+          grossWeight: { type: Type.STRING },
+          cbm: { type: Type.STRING }
         },
         required: ["item", "quantity", "unitPrice", "amount"]
       }
@@ -71,6 +89,18 @@ const invoiceSchema = {
     notes: { type: Type.STRING },
     payment_details: { type: Type.STRING },
     bank_details: { type: Type.STRING },
+    commercial_terms: {
+      type: Type.OBJECT,
+      properties: {
+        ttTerms: { type: Type.STRING },
+        bankTransferInstructions: { type: Type.STRING },
+        validity: { type: Type.STRING },
+        shippingTerms: { type: Type.STRING },
+        deliveryLeadTime: { type: Type.STRING },
+        packagingTerms: { type: Type.STRING },
+        warrantyTerms: { type: Type.STRING }
+      }
+    },
     qr_payment_link: { type: Type.STRING },
     template_settings: {
       type: Type.OBJECT,

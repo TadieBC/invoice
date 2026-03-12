@@ -118,12 +118,13 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
+    const currentItems = data.items || [];
     if (active.id !== over?.id) {
-      const oldIndex = data.items.findIndex((item) => item.id === active.id);
-      const newIndex = data.items.findIndex((item) => item.id === over.id);
+      const oldIndex = currentItems.findIndex((item) => item.id === active.id);
+      const newIndex = currentItems.findIndex((item) => item.id === over.id);
       onChange({
         ...data,
-        items: arrayMove(data.items, oldIndex, newIndex),
+        items: arrayMove(currentItems, oldIndex, newIndex),
       });
     }
   };
@@ -153,7 +154,8 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
   };
 
   const handleItemChange = (id: string, field: string, value: any) => {
-    const newItems = data.items.map((item) => {
+    const currentItems = data.items || [];
+    const newItems = currentItems.map((item) => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
         if (field === 'quantity' || field === 'unitPrice') {
@@ -178,10 +180,11 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
   };
 
   const addItem = () => {
+    const currentItems = data.items || [];
     onChange({
       ...data,
       items: [
-        ...data.items,
+        ...currentItems,
         {
           id: uuidv4(),
           item: '',
@@ -197,7 +200,8 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
   };
 
   const removeItem = (id: string) => {
-    const newItems = data.items.filter((item) => item.id !== id);
+    const currentItems = data.items || [];
+    const newItems = currentItems.filter((item) => item.id !== id);
     const subtotal = newItems.reduce((sum, item) => sum + (item.amount || 0), 0);
     const taxAmount = subtotal * ((data.tax?.rate || 0) / 100);
     const total = subtotal + taxAmount + (data.shipping || 0) - (data.discount || 0);
@@ -246,6 +250,12 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
         <Input label="Issue Date" type="date" value={data.invoice_meta?.issueDate} onChange={(v: string) => handleMetaChange('issueDate', v)} />
         <Input label="Due Date" type="date" value={data.invoice_meta?.dueDate} onChange={(v: string) => handleMetaChange('dueDate', v)} />
         <Input label="Currency" value={data.currency} onChange={(v: string) => handleChange('currency', v)} />
+        <Input label="Incoterm" value={data.invoice_meta?.incoterm} onChange={(v: string) => handleMetaChange('incoterm', v)} />
+        <Input label="Payment Term" value={data.invoice_meta?.paymentTerm} onChange={(v: string) => handleMetaChange('paymentTerm', v)} />
+        <Input label="Shipment Method" value={data.invoice_meta?.shipmentMethod} onChange={(v: string) => handleMetaChange('shipmentMethod', v)} />
+        <Input label="Country of Origin" value={data.invoice_meta?.countryOfOrigin} onChange={(v: string) => handleMetaChange('countryOfOrigin', v)} />
+        <Input label="Port of Loading" value={data.invoice_meta?.portOfLoading} onChange={(v: string) => handleMetaChange('portOfLoading', v)} />
+        <Input label="Port of Discharge" value={data.invoice_meta?.portOfDischarge} onChange={(v: string) => handleMetaChange('portOfDischarge', v)} />
       </div>
 
       {/* Parties */}
@@ -299,14 +309,25 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
       {/* Totals & Additional */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-4 bg-slate-800 p-6 rounded-xl border border-slate-700">
+          <h3 className="font-semibold text-slate-100 border-b border-slate-700 pb-2">Commercial Terms</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="T/T Terms" value={data.commercial_terms?.ttTerms} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, ttTerms: v })} />
+            <Input label="Validity" value={data.commercial_terms?.validity} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, validity: v })} />
+            <Input label="Shipping Terms" value={data.commercial_terms?.shippingTerms} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, shippingTerms: v })} />
+            <Input label="Delivery Lead Time" value={data.commercial_terms?.deliveryLeadTime} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, deliveryLeadTime: v })} />
+            <Input label="Packaging Terms" value={data.commercial_terms?.packagingTerms} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, packagingTerms: v })} />
+            <Input label="Warranty Terms" value={data.commercial_terms?.warrantyTerms} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, warrantyTerms: v })} />
+          </div>
+        </div>
+        <div className="space-y-4 bg-slate-800 p-6 rounded-xl border border-slate-700">
           <h3 className="font-semibold text-slate-100 border-b border-slate-700 pb-2">Additional Info</h3>
           <Textarea label="Payment Details" value={data.payment_details} onChange={(v: string) => handleChange('payment_details', v)} />
           <Textarea label="Bank Details" value={data.bank_details} onChange={(v: string) => handleChange('bank_details', v)} />
           <Textarea label="Notes" value={data.notes} onChange={(v: string) => handleChange('notes', v)} />
         </div>
-        <div className="space-y-4 bg-slate-800 p-6 rounded-xl border border-slate-700">
+        <div className="space-y-4 bg-slate-800 p-6 rounded-xl border border-slate-700 md:col-span-2">
           <h3 className="font-semibold text-slate-100 border-b border-slate-700 pb-2">Totals</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <Input label="Subtotal" type="number" value={data.subtotal} onChange={(v: number) => handleChange('subtotal', v)} />
             <Input label="Tax Rate (%)" type="number" value={data.tax?.rate} onChange={(v: number) => handleChange('tax', { ...data.tax, rate: v })} />
             <Input label="Tax Amount" type="number" value={data.tax?.amount} onChange={(v: number) => handleChange('tax', { ...data.tax, amount: v })} />
