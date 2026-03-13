@@ -10,10 +10,14 @@ const invoiceSchema = {
     invoice_meta: {
       type: Type.OBJECT,
       properties: {
-        invoiceNumber: { type: Type.STRING, description: "Invoice number, generate a random one if not provided (e.g., INV-2023-001)" },
+        invoiceNumber: { type: Type.STRING, description: "Invoice number, generate a random one if not provided (e.g., [COMPANY_INITIALS]-[YYYY][DD][MM]-001)" },
         issueDate: { type: Type.STRING, description: "Invoice date in YYYY-MM-DD format. Use today if not provided." },
         dueDate: { type: Type.STRING, description: "Due date in YYYY-MM-DD format." },
         type: { type: Type.STRING, description: "commercial, proforma, packing_list, or standard" },
+        quotationNumber: { type: Type.STRING },
+        poNumber: { type: Type.STRING },
+        customerReference: { type: Type.STRING },
+        contractReference: { type: Type.STRING },
         incoterm: { type: Type.STRING },
         paymentTerm: { type: Type.STRING },
         shipmentMethod: { type: Type.STRING },
@@ -23,7 +27,7 @@ const invoiceSchema = {
         productCategory: { type: Type.STRING }
       }
     },
-    currency: { type: Type.STRING, description: "Currency code (e.g., USD, RMB, EUR, NAD, ZWL)" },
+    currency: { type: Type.STRING, description: "Currency code (e.g., USD, CNY, EUR, GBP, AUD, CAD, AED, ZAR, ZWL, JPY, SGD, HKD)" },
     seller: {
       type: Type.OBJECT,
       properties: {
@@ -32,13 +36,9 @@ const invoiceSchema = {
         email: { type: Type.STRING },
         phone: { type: Type.STRING },
         taxId: { type: Type.STRING },
+        registrationNumber: { type: Type.STRING },
         website: { type: Type.STRING },
-        contactPerson: { type: Type.STRING },
-        bankName: { type: Type.STRING },
-        bankAddress: { type: Type.STRING },
-        accountName: { type: Type.STRING },
-        accountNumber: { type: Type.STRING },
-        swiftCode: { type: Type.STRING }
+        contactPerson: { type: Type.STRING }
       }
     },
     buyer: {
@@ -49,6 +49,7 @@ const invoiceSchema = {
         email: { type: Type.STRING },
         phone: { type: Type.STRING },
         taxId: { type: Type.STRING },
+        registrationNumber: { type: Type.STRING },
         website: { type: Type.STRING },
         contactPerson: { type: Type.STRING }
       }
@@ -70,7 +71,12 @@ const invoiceSchema = {
           amount: { type: Type.NUMBER, description: "quantity * unitPrice" },
           netWeight: { type: Type.STRING },
           grossWeight: { type: Type.STRING },
-          cbm: { type: Type.STRING }
+          cbm: { type: Type.STRING },
+          origin: { type: Type.STRING },
+          material: { type: Type.STRING },
+          dimensions: { type: Type.STRING },
+          color: { type: Type.STRING },
+          remarks: { type: Type.STRING }
         },
         required: ["item", "quantity", "unitPrice", "amount"]
       }
@@ -88,7 +94,21 @@ const invoiceSchema = {
     total: { type: Type.NUMBER },
     notes: { type: Type.STRING },
     payment_details: { type: Type.STRING },
-    bank_details: { type: Type.STRING },
+    bank_details: {
+      type: Type.OBJECT,
+      properties: {
+        beneficiaryName: { type: Type.STRING },
+        bankName: { type: Type.STRING },
+        branchName: { type: Type.STRING },
+        bankAddress: { type: Type.STRING },
+        accountNumber: { type: Type.STRING },
+        swiftCode: { type: Type.STRING },
+        iban: { type: Type.STRING },
+        routingNumber: { type: Type.STRING },
+        branchCode: { type: Type.STRING },
+        currencyAccountDetails: { type: Type.STRING }
+      }
+    },
     commercial_terms: {
       type: Type.OBJECT,
       properties: {
@@ -98,7 +118,10 @@ const invoiceSchema = {
         shippingTerms: { type: Type.STRING },
         deliveryLeadTime: { type: Type.STRING },
         packagingTerms: { type: Type.STRING },
-        warrantyTerms: { type: Type.STRING }
+        warrantyTerms: { type: Type.STRING },
+        hsCode: { type: Type.STRING },
+        deliveryTerms: { type: Type.STRING },
+        remarks: { type: Type.STRING }
       }
     },
     qr_payment_link: { type: Type.STRING },
@@ -142,12 +165,27 @@ export async function generateInvoiceData(
     
     let systemInstruction = `You are an expert AI Invoice Generator. Your task is to extract, understand, organize, and format information into a structured invoice.
     You must support multilingual data (especially Chinese and English).
-    Calculate the amounts, subtotal, tax, shipping, and grand total accurately if they are not explicitly provided.
-    If the user provides an existing invoice context, update it with the new instructions.
+    CRITICAL INSTRUCTIONS:
+    1. Extract ALL provided details meticulously. Do not skip any information.
+    2. Pay special attention to Bank Details (Account Name, Account Number, Bank Name, Branch, SWIFT, etc.) and put them in the \`bank_details\` object.
+    3. Extract all Commercial Terms (Trade Terms, Payment Terms, Lead Time, Validity, etc.) and put them in the \`commercial_terms\` object.
+    4. Extract the exact Invoice Number, Issue Date, and Currency if provided.
+    5. For items, extract the full Specifications and put them in the \`specification\` field. Do not truncate them, even if they are long.
+    6. Extract full Buyer and Seller information including Company Name, Contact Person, Address, and Phone.
+    7. Calculate the amounts, subtotal, tax, shipping, and grand total accurately if they are not explicitly provided.
+    8. If the user provides an existing invoice context, update it with the new instructions.
     Ensure the output strictly follows the provided JSON schema.`;
 
     if (existingData) {
-      parts.push({ text: `Existing Invoice Data: ${JSON.stringify(existingData)}` });
+      // Omit base64 images to save tokens, as they are tokenized as text and can easily exceed the 1M token limit
+      const dataToSerialize = { ...existingData };
+      if (dataToSerialize.logo?.startsWith('data:image')) {
+        delete dataToSerialize.logo;
+      }
+      if (dataToSerialize.qr_payment_link?.startsWith('data:image')) {
+        delete dataToSerialize.qr_payment_link;
+      }
+      parts.push({ text: `Existing Invoice Data: ${JSON.stringify(dataToSerialize)}` });
       parts.push({ text: `User Instructions to update the invoice: ${prompt}` });
     } else {
       parts.push({ text: `User Instructions: ${prompt}` });

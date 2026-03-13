@@ -32,6 +32,7 @@ export const LightElegantTemplate = ({ data, primaryColor }: { data: InvoiceData
               {data.seller?.email && <span>{data.seller.email}</span>}
               {data.seller?.phone && <span>{data.seller.phone}</span>}
               {data.seller?.taxId && <span>Tax ID: {data.seller.taxId}</span>}
+              {data.seller?.registrationNumber && <span>Reg No: {data.seller.registrationNumber}</span>}
             </div>
           </div>
         </div>
@@ -40,20 +41,40 @@ export const LightElegantTemplate = ({ data, primaryColor }: { data: InvoiceData
             {data.invoice_meta?.type === 'proforma' ? 'Proforma' : 
              data.invoice_meta?.type === 'packing_list' ? 'Packing List' : 'Invoice'}
           </h1>
-          <div className={cn("space-y-3 text-sm font-light text-slate-500", settings.headerLayout === 'minimal' ? 'flex flex-col items-center' : '')}>
-            <div className={cn("flex gap-6", settings.headerLayout === 'minimal' ? 'justify-center' : 'justify-end')}>
-              <span className="uppercase tracking-wider text-xs">No.</span>
-              <span className="font-normal text-slate-800">{data.invoice_meta?.invoiceNumber}</span>
-            </div>
-            <div className={cn("flex gap-6", settings.headerLayout === 'minimal' ? 'justify-center' : 'justify-end')}>
-              <span className="uppercase tracking-wider text-xs">Date</span>
-              <span className="font-normal text-slate-800">{data.invoice_meta?.issueDate}</span>
-            </div>
+          <div className={cn("grid grid-cols-2 gap-x-6 gap-y-2 text-sm font-light text-slate-500 text-right", settings.headerLayout === 'minimal' ? 'flex flex-col items-center' : 'inline-grid')}>
+            <div className="uppercase tracking-wider text-xs">No.</div>
+            <div className="font-normal text-slate-800">{data.invoice_meta?.invoiceNumber}</div>
+            <div className="uppercase tracking-wider text-xs">Date</div>
+            <div className="font-normal text-slate-800">{data.invoice_meta?.issueDate}</div>
             {data.invoice_meta?.dueDate && (
-              <div className={cn("flex gap-6", settings.headerLayout === 'minimal' ? 'justify-center' : 'justify-end')}>
-                <span className="uppercase tracking-wider text-xs">Due</span>
-                <span className="font-normal text-slate-800">{data.invoice_meta?.dueDate}</span>
-              </div>
+              <>
+                <div className="uppercase tracking-wider text-xs">Due</div>
+                <div className="font-normal text-slate-800">{data.invoice_meta?.dueDate}</div>
+              </>
+            )}
+            {data.invoice_meta?.poNumber && (
+              <>
+                <div className="uppercase tracking-wider text-xs">PO Number</div>
+                <div className="font-normal text-slate-800">{data.invoice_meta?.poNumber}</div>
+              </>
+            )}
+            {data.invoice_meta?.quotationNumber && (
+              <>
+                <div className="uppercase tracking-wider text-xs">Quotation No.</div>
+                <div className="font-normal text-slate-800">{data.invoice_meta?.quotationNumber}</div>
+              </>
+            )}
+            {data.invoice_meta?.customerReference && (
+              <>
+                <div className="uppercase tracking-wider text-xs">Customer Ref</div>
+                <div className="font-normal text-slate-800">{data.invoice_meta?.customerReference}</div>
+              </>
+            )}
+            {data.invoice_meta?.contractReference && (
+              <>
+                <div className="uppercase tracking-wider text-xs">Contract Ref</div>
+                <div className="font-normal text-slate-800">{data.invoice_meta?.contractReference}</div>
+              </>
             )}
           </div>
         </div>
@@ -71,11 +92,12 @@ export const LightElegantTemplate = ({ data, primaryColor }: { data: InvoiceData
               {data.buyer?.email && <span>{data.buyer.email}</span>}
               {data.buyer?.phone && <span>{data.buyer.phone}</span>}
               {data.buyer?.taxId && <span>Tax ID: {data.buyer.taxId}</span>}
+              {data.buyer?.registrationNumber && <span>Reg No: {data.buyer.registrationNumber}</span>}
             </div>
           </div>
         </div>
 
-        {(data.invoice_meta?.incoterm || data.invoice_meta?.paymentTerm || data.invoice_meta?.shipmentMethod || data.invoice_meta?.portOfLoading || data.invoice_meta?.portOfDischarge) && (
+        {(data.invoice_meta?.incoterm || data.invoice_meta?.paymentTerm || data.invoice_meta?.shipmentMethod || data.invoice_meta?.portOfLoading || data.invoice_meta?.portOfDischarge || data.invoice_meta?.countryOfOrigin) && (
           <div>
             <h3 className="text-xs font-light tracking-widest text-slate-400 uppercase mb-6">Commercial Details</h3>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm font-light text-slate-500">
@@ -115,6 +137,12 @@ export const LightElegantTemplate = ({ data, primaryColor }: { data: InvoiceData
                   <span className="font-normal text-slate-800">{data.invoice_meta.countryOfOrigin}</span>
                 </>
               )}
+              {data.invoice_meta?.productCategory && (
+                <>
+                  <span className="uppercase tracking-wider text-xs">Product Category</span>
+                  <span className="font-normal text-slate-800">{data.invoice_meta.productCategory}</span>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -125,26 +153,28 @@ export const LightElegantTemplate = ({ data, primaryColor }: { data: InvoiceData
         <table className={cn("w-full text-sm text-left table-fixed break-words", tableClass)}>
           <thead>
             <tr className="border-b border-slate-200">
-              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 w-[45%]">Description</th>
-              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 text-center w-[15%]">Qty</th>
-              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 text-right w-[20%]">Price</th>
-              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 text-right w-[20%]">Amount</th>
+              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 w-[5%]">No</th>
+              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 w-[20%]">Item Name</th>
+              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 w-[15%]">Model</th>
+              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 w-[25%]">Specifications</th>
+              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 text-center w-[10%]">Qty</th>
+              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 text-right w-[10%]">Price</th>
+              <th className="py-4 px-2 font-light tracking-widest uppercase text-xs text-slate-400 text-right w-[15%]">Amount</th>
             </tr>
           </thead>
           <tbody>
             {data.items?.map((item, index) => (
               <tr key={item.id || index} className="border-b border-slate-100 last:border-0">
-                <td className="py-6 px-2">
+                <td className="py-6 px-2 text-slate-500 font-light text-xs align-top">{item.itemNumber || index + 1}</td>
+                <td className="py-6 px-2 align-top">
                   <p className="font-normal text-slate-800">{item.item}</p>
-                  {(item.description || item.specification || item.model) && (
-                    <p className="text-slate-500 font-light text-xs mt-2 leading-relaxed">
-                      {[item.model, item.specification, item.description].filter(Boolean).join(' • ')}
-                    </p>
-                  )}
+                  {item.description && <p className="text-slate-500 font-light text-xs mt-2 leading-relaxed">{item.description}</p>}
                 </td>
-                <td className="py-6 px-2 text-center font-light text-slate-600">{item.quantity}</td>
-                <td className="py-6 px-2 text-right font-light text-slate-600">{formatCurrency(item.unitPrice, data.currency)}</td>
-                <td className="py-6 px-2 text-right font-normal text-slate-800">{formatCurrency(item.amount, data.currency)}</td>
+                <td className="py-6 px-2 text-slate-600 font-light text-xs align-top">{item.model || '-'}</td>
+                <td className="py-6 px-2 text-slate-600 font-light text-xs whitespace-pre-wrap align-top">{item.specification || '-'}</td>
+                <td className="py-6 px-2 text-center font-light text-slate-600 align-top">{item.quantity} {item.unit || ''}</td>
+                <td className="py-6 px-2 text-right font-light text-slate-600 align-top">{formatCurrency(item.unitPrice, data.currency)}</td>
+                <td className="py-6 px-2 text-right font-normal text-slate-800 align-top">{formatCurrency(item.amount, data.currency)}</td>
               </tr>
             ))}
           </tbody>
@@ -198,10 +228,21 @@ export const LightElegantTemplate = ({ data, primaryColor }: { data: InvoiceData
             <p className="whitespace-pre-wrap text-slate-600 font-light leading-relaxed">{data.payment_details}</p>
           </div>
         )}
-        {data.bank_details && (
+        {data.bank_details && Object.keys(data.bank_details).length > 0 && (
           <div>
             <h4 className="font-light tracking-widest uppercase text-xs text-slate-400 mb-4">Bank Details</h4>
-            <p className="whitespace-pre-wrap text-slate-600 font-light leading-relaxed">{data.bank_details}</p>
+            <div className="text-slate-600 font-light space-y-1">
+              {data.bank_details.beneficiaryName && <p><span className="text-slate-400 mr-2">Beneficiary Name:</span>{data.bank_details.beneficiaryName}</p>}
+              {data.bank_details.bankName && <p><span className="text-slate-400 mr-2">Bank Name:</span>{data.bank_details.bankName}</p>}
+              {data.bank_details.branchName && <p><span className="text-slate-400 mr-2">Branch Name:</span>{data.bank_details.branchName}</p>}
+              {data.bank_details.bankAddress && <p><span className="text-slate-400 mr-2">Bank Address:</span>{data.bank_details.bankAddress}</p>}
+              {data.bank_details.accountNumber && <p><span className="text-slate-400 mr-2">Account No:</span>{data.bank_details.accountNumber}</p>}
+              {data.bank_details.swiftCode && <p><span className="text-slate-400 mr-2">SWIFT Code:</span>{data.bank_details.swiftCode}</p>}
+              {data.bank_details.iban && <p><span className="text-slate-400 mr-2">IBAN:</span>{data.bank_details.iban}</p>}
+              {data.bank_details.routingNumber && <p><span className="text-slate-400 mr-2">Routing No:</span>{data.bank_details.routingNumber}</p>}
+              {data.bank_details.branchCode && <p><span className="text-slate-400 mr-2">Branch Code:</span>{data.bank_details.branchCode}</p>}
+              {data.bank_details.currencyAccountDetails && <p><span className="text-slate-400 mr-2">Currency Account Details:</span><br/>{data.bank_details.currencyAccountDetails}</p>}
+            </div>
           </div>
         )}
         {data.commercial_terms && Object.keys(data.commercial_terms).length > 0 && (

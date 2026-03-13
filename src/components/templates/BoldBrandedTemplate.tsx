@@ -35,6 +35,7 @@ export const BoldBrandedTemplate = ({ data, primaryColor }: { data: InvoiceData;
               {data.seller?.email && <span>{data.seller.email}</span>}
               {data.seller?.phone && <span>{data.seller.phone}</span>}
               {data.seller?.taxId && <span>Tax ID: {data.seller.taxId}</span>}
+              {data.seller?.registrationNumber && <span>Reg No: {data.seller.registrationNumber}</span>}
             </div>
           </div>
         </div>
@@ -43,20 +44,40 @@ export const BoldBrandedTemplate = ({ data, primaryColor }: { data: InvoiceData;
             {data.invoice_meta?.type === 'proforma' ? 'Proforma' : 
              data.invoice_meta?.type === 'packing_list' ? 'Packing List' : 'Invoice'}
           </h1>
-          <div className={cn("space-y-2 text-sm font-medium", settings.headerLayout === 'minimal' ? 'flex flex-col items-center' : '')}>
-            <div className={cn("flex gap-4", settings.headerLayout === 'minimal' ? 'justify-center' : 'justify-end')}>
-              <span className="opacity-75">No.</span>
-              <span className="text-lg">{data.invoice_meta?.invoiceNumber}</span>
-            </div>
-            <div className={cn("flex gap-4", settings.headerLayout === 'minimal' ? 'justify-center' : 'justify-end')}>
-              <span className="opacity-75">Date</span>
-              <span>{data.invoice_meta?.issueDate}</span>
-            </div>
+          <div className={cn("grid grid-cols-2 gap-x-4 gap-y-1 text-sm font-medium text-right", settings.headerLayout === 'minimal' ? 'flex flex-col items-center' : 'inline-grid')}>
+            <div className="opacity-75">No.</div>
+            <div className="text-lg">{data.invoice_meta?.invoiceNumber}</div>
+            <div className="opacity-75">Date</div>
+            <div>{data.invoice_meta?.issueDate}</div>
             {data.invoice_meta?.dueDate && (
-              <div className={cn("flex gap-4", settings.headerLayout === 'minimal' ? 'justify-center' : 'justify-end')}>
-                <span className="opacity-75">Due</span>
-                <span>{data.invoice_meta?.dueDate}</span>
-              </div>
+              <>
+                <div className="opacity-75">Due</div>
+                <div>{data.invoice_meta?.dueDate}</div>
+              </>
+            )}
+            {data.invoice_meta?.poNumber && (
+              <>
+                <div className="opacity-75">PO Number</div>
+                <div>{data.invoice_meta?.poNumber}</div>
+              </>
+            )}
+            {data.invoice_meta?.quotationNumber && (
+              <>
+                <div className="opacity-75">Quotation No.</div>
+                <div>{data.invoice_meta?.quotationNumber}</div>
+              </>
+            )}
+            {data.invoice_meta?.customerReference && (
+              <>
+                <div className="opacity-75">Customer Ref</div>
+                <div>{data.invoice_meta?.customerReference}</div>
+              </>
+            )}
+            {data.invoice_meta?.contractReference && (
+              <>
+                <div className="opacity-75">Contract Ref</div>
+                <div>{data.invoice_meta?.contractReference}</div>
+              </>
             )}
           </div>
         </div>
@@ -75,11 +96,12 @@ export const BoldBrandedTemplate = ({ data, primaryColor }: { data: InvoiceData;
                 {data.buyer?.email && <span>{data.buyer.email}</span>}
                 {data.buyer?.phone && <span>{data.buyer.phone}</span>}
                 {data.buyer?.taxId && <span className="font-medium">Tax ID: {data.buyer.taxId}</span>}
+                {data.buyer?.registrationNumber && <span className="font-medium">Reg No: {data.buyer.registrationNumber}</span>}
               </div>
             </div>
           </div>
 
-          {(data.invoice_meta?.incoterm || data.invoice_meta?.paymentTerm || data.invoice_meta?.shipmentMethod || data.invoice_meta?.portOfLoading || data.invoice_meta?.portOfDischarge) && (
+          {(data.invoice_meta?.incoterm || data.invoice_meta?.paymentTerm || data.invoice_meta?.shipmentMethod || data.invoice_meta?.portOfLoading || data.invoice_meta?.portOfDischarge || data.invoice_meta?.countryOfOrigin) && (
             <div>
               <h3 className="text-sm font-black tracking-widest uppercase mb-4 border-b-2 pb-2" style={{ color: actualPrimaryColor, borderColor: actualPrimaryColor }}>Commercial Details</h3>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-700">
@@ -119,6 +141,12 @@ export const BoldBrandedTemplate = ({ data, primaryColor }: { data: InvoiceData;
                     <span className="font-bold text-slate-900">{data.invoice_meta.countryOfOrigin}</span>
                   </>
                 )}
+                {data.invoice_meta?.productCategory && (
+                  <>
+                    <span className="font-medium">Product Category</span>
+                    <span className="font-bold text-slate-900">{data.invoice_meta.productCategory}</span>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -130,26 +158,28 @@ export const BoldBrandedTemplate = ({ data, primaryColor }: { data: InvoiceData;
             <table className={cn("w-full text-sm text-left table-fixed break-words", settings.tableStyle === 'bordered' ? tableClass : '')}>
               <thead>
               <tr className="text-white" style={{ backgroundColor: actualPrimaryColor }}>
-                <th className="py-4 px-4 font-bold w-[45%]">Description</th>
-                <th className="py-4 px-4 font-bold text-center w-[15%]">Qty</th>
-                <th className="py-4 px-4 font-bold text-right w-[20%]">Price</th>
-                <th className="py-4 px-4 font-bold text-right w-[20%]">Amount</th>
+                <th className="py-4 px-4 font-bold w-[5%]">No</th>
+                <th className="py-4 px-4 font-bold w-[20%]">Item Name</th>
+                <th className="py-4 px-4 font-bold w-[15%]">Model</th>
+                <th className="py-4 px-4 font-bold w-[25%]">Specifications</th>
+                <th className="py-4 px-2 font-bold text-center w-[10%]">Qty</th>
+                <th className="py-4 px-4 font-bold text-right w-[10%]">Price</th>
+                <th className="py-4 px-4 font-bold text-right w-[15%]">Amount</th>
               </tr>
             </thead>
             <tbody className={settings.tableStyle !== 'bordered' ? tableClass : ''}>
               {data.items?.map((item, index) => (
                 <tr key={item.id || index} className="border-b border-slate-200 last:border-0">
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-4 text-slate-500 text-xs align-top">{item.itemNumber || index + 1}</td>
+                  <td className="py-4 px-4 align-top">
                     <p className="font-bold text-slate-900">{item.item}</p>
-                    {(item.description || item.specification || item.model) && (
-                      <p className="text-slate-600 text-xs mt-1">
-                        {[item.model, item.specification, item.description].filter(Boolean).join(' • ')}
-                      </p>
-                    )}
+                    {item.description && <p className="text-slate-600 text-xs mt-1">{item.description}</p>}
                   </td>
-                  <td className="py-4 px-4 text-center font-bold text-slate-700">{item.quantity}</td>
-                  <td className="py-4 px-4 text-right font-medium text-slate-700">{formatCurrency(item.unitPrice, data.currency)}</td>
-                  <td className="py-4 px-4 text-right font-black text-slate-900">{formatCurrency(item.amount, data.currency)}</td>
+                  <td className="py-4 px-4 text-slate-600 text-xs align-top">{item.model || '-'}</td>
+                  <td className="py-4 px-4 text-slate-600 text-xs whitespace-pre-wrap align-top">{item.specification || '-'}</td>
+                  <td className="py-4 px-2 text-center font-bold text-slate-700 align-top">{item.quantity} {item.unit || ''}</td>
+                  <td className="py-4 px-4 text-right font-medium text-slate-700 align-top">{formatCurrency(item.unitPrice, data.currency)}</td>
+                  <td className="py-4 px-4 text-right font-black text-slate-900 align-top">{formatCurrency(item.amount, data.currency)}</td>
                 </tr>
               ))}
             </tbody>
@@ -204,10 +234,21 @@ export const BoldBrandedTemplate = ({ data, primaryColor }: { data: InvoiceData;
               <p className="whitespace-pre-wrap text-slate-700 font-medium">{data.payment_details}</p>
             </div>
           )}
-          {data.bank_details && (
+          {data.bank_details && Object.keys(data.bank_details).length > 0 && (
             <div>
               <h4 className="font-black tracking-widest uppercase text-xs mb-3" style={{ color: actualPrimaryColor }}>Bank Details</h4>
-              <p className="whitespace-pre-wrap text-slate-700 font-medium">{data.bank_details}</p>
+              <div className="text-slate-700 font-medium space-y-1">
+                {data.bank_details.beneficiaryName && <p><span className="font-bold mr-2">Beneficiary Name:</span>{data.bank_details.beneficiaryName}</p>}
+                {data.bank_details.bankName && <p><span className="font-bold mr-2">Bank Name:</span>{data.bank_details.bankName}</p>}
+                {data.bank_details.branchName && <p><span className="font-bold mr-2">Branch Name:</span>{data.bank_details.branchName}</p>}
+                {data.bank_details.bankAddress && <p><span className="font-bold mr-2">Bank Address:</span>{data.bank_details.bankAddress}</p>}
+                {data.bank_details.accountNumber && <p><span className="font-bold mr-2">Account No:</span>{data.bank_details.accountNumber}</p>}
+                {data.bank_details.swiftCode && <p><span className="font-bold mr-2">SWIFT Code:</span>{data.bank_details.swiftCode}</p>}
+                {data.bank_details.iban && <p><span className="font-bold mr-2">IBAN:</span>{data.bank_details.iban}</p>}
+                {data.bank_details.routingNumber && <p><span className="font-bold mr-2">Routing No:</span>{data.bank_details.routingNumber}</p>}
+                {data.bank_details.branchCode && <p><span className="font-bold mr-2">Branch Code:</span>{data.bank_details.branchCode}</p>}
+                {data.bank_details.currencyAccountDetails && <p><span className="font-bold mr-2">Currency Account Details:</span><br/>{data.bank_details.currencyAccountDetails}</p>}
+              </div>
             </div>
           )}
           {data.commercial_terms && Object.keys(data.commercial_terms).length > 0 && (

@@ -84,6 +84,33 @@ const SortableItem: React.FC<{ item: any; removeItem: (id: string) => void; hand
           <div className="col-span-12">
             <Input label="Description / Specs" value={item.description || item.specification} onChange={(v: string) => handleItemChange(item.id, 'description', v)} />
           </div>
+          <div className="col-span-6 sm:col-span-3">
+            <Input label="HS Code" value={item.hsCode} onChange={(v: string) => handleItemChange(item.id, 'hsCode', v)} />
+          </div>
+          <div className="col-span-6 sm:col-span-3">
+            <Input label="Origin" value={item.origin} onChange={(v: string) => handleItemChange(item.id, 'origin', v)} />
+          </div>
+          <div className="col-span-6 sm:col-span-3">
+            <Input label="Material" value={item.material} onChange={(v: string) => handleItemChange(item.id, 'material', v)} />
+          </div>
+          <div className="col-span-6 sm:col-span-3">
+            <Input label="Dimensions" value={item.dimensions} onChange={(v: string) => handleItemChange(item.id, 'dimensions', v)} />
+          </div>
+          <div className="col-span-6 sm:col-span-3">
+            <Input label="Color" value={item.color} onChange={(v: string) => handleItemChange(item.id, 'color', v)} />
+          </div>
+          <div className="col-span-6 sm:col-span-3">
+            <Input label="Net Weight" value={item.netWeight} onChange={(v: string) => handleItemChange(item.id, 'netWeight', v)} />
+          </div>
+          <div className="col-span-6 sm:col-span-3">
+            <Input label="Gross Weight" value={item.grossWeight} onChange={(v: string) => handleItemChange(item.id, 'grossWeight', v)} />
+          </div>
+          <div className="col-span-6 sm:col-span-3">
+            <Input label="CBM" value={item.cbm} onChange={(v: string) => handleItemChange(item.id, 'cbm', v)} />
+          </div>
+          <div className="col-span-12">
+            <Input label="Remarks" value={item.remarks} onChange={(v: string) => handleItemChange(item.id, 'remarks', v)} />
+          </div>
         </div>
       </div>
     </div>
@@ -250,12 +277,17 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
         <Input label="Issue Date" type="date" value={data.invoice_meta?.issueDate} onChange={(v: string) => handleMetaChange('issueDate', v)} />
         <Input label="Due Date" type="date" value={data.invoice_meta?.dueDate} onChange={(v: string) => handleMetaChange('dueDate', v)} />
         <Input label="Currency" value={data.currency} onChange={(v: string) => handleChange('currency', v)} />
+        <Input label="Quotation Number" value={data.invoice_meta?.quotationNumber} onChange={(v: string) => handleMetaChange('quotationNumber', v)} />
+        <Input label="PO Number" value={data.invoice_meta?.poNumber} onChange={(v: string) => handleMetaChange('poNumber', v)} />
+        <Input label="Customer Ref" value={data.invoice_meta?.customerReference} onChange={(v: string) => handleMetaChange('customerReference', v)} />
+        <Input label="Contract Ref" value={data.invoice_meta?.contractReference} onChange={(v: string) => handleMetaChange('contractReference', v)} />
         <Input label="Incoterm" value={data.invoice_meta?.incoterm} onChange={(v: string) => handleMetaChange('incoterm', v)} />
         <Input label="Payment Term" value={data.invoice_meta?.paymentTerm} onChange={(v: string) => handleMetaChange('paymentTerm', v)} />
         <Input label="Shipment Method" value={data.invoice_meta?.shipmentMethod} onChange={(v: string) => handleMetaChange('shipmentMethod', v)} />
         <Input label="Country of Origin" value={data.invoice_meta?.countryOfOrigin} onChange={(v: string) => handleMetaChange('countryOfOrigin', v)} />
         <Input label="Port of Loading" value={data.invoice_meta?.portOfLoading} onChange={(v: string) => handleMetaChange('portOfLoading', v)} />
         <Input label="Port of Discharge" value={data.invoice_meta?.portOfDischarge} onChange={(v: string) => handleMetaChange('portOfDischarge', v)} />
+        <Input label="Product Category" value={data.invoice_meta?.productCategory} onChange={(v: string) => handleMetaChange('productCategory', v)} />
       </div>
 
       {/* Parties */}
@@ -268,6 +300,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
             <Input label="Email" value={data.seller?.email} onChange={(v: string) => handleCompanyChange('seller', 'email', v)} />
             <Input label="Phone" value={data.seller?.phone} onChange={(v: string) => handleCompanyChange('seller', 'phone', v)} />
             <Input label="Tax ID" value={data.seller?.taxId} onChange={(v: string) => handleCompanyChange('seller', 'taxId', v)} />
+            <Input label="Registration No." value={data.seller?.registrationNumber} onChange={(v: string) => handleCompanyChange('seller', 'registrationNumber', v)} />
             <Input label="Website" value={data.seller?.website} onChange={(v: string) => handleCompanyChange('seller', 'website', v)} />
           </div>
         </div>
@@ -279,6 +312,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
             <Input label="Email" value={data.buyer?.email} onChange={(v: string) => handleCompanyChange('buyer', 'email', v)} />
             <Input label="Phone" value={data.buyer?.phone} onChange={(v: string) => handleCompanyChange('buyer', 'phone', v)} />
             <Input label="Tax ID" value={data.buyer?.taxId} onChange={(v: string) => handleCompanyChange('buyer', 'taxId', v)} />
+            <Input label="Registration No." value={data.buyer?.registrationNumber} onChange={(v: string) => handleCompanyChange('buyer', 'registrationNumber', v)} />
             <Input label="Contact Person" value={data.buyer?.contactPerson} onChange={(v: string) => handleCompanyChange('buyer', 'contactPerson', v)} />
           </div>
         </div>
@@ -317,12 +351,33 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
             <Input label="Delivery Lead Time" value={data.commercial_terms?.deliveryLeadTime} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, deliveryLeadTime: v })} />
             <Input label="Packaging Terms" value={data.commercial_terms?.packagingTerms} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, packagingTerms: v })} />
             <Input label="Warranty Terms" value={data.commercial_terms?.warrantyTerms} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, warrantyTerms: v })} />
+            <Input label="HS Code" value={data.commercial_terms?.hsCode} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, hsCode: v })} />
+            <Input label="Delivery Terms" value={data.commercial_terms?.deliveryTerms} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, deliveryTerms: v })} />
+            <div className="col-span-2">
+              <Textarea label="Remarks / Notes" value={data.commercial_terms?.remarks} onChange={(v: string) => handleChange('commercial_terms', { ...data.commercial_terms, remarks: v })} />
+            </div>
           </div>
         </div>
         <div className="space-y-4 bg-slate-800 p-6 rounded-xl border border-slate-700">
           <h3 className="font-semibold text-slate-100 border-b border-slate-700 pb-2">Additional Info</h3>
           <Textarea label="Payment Details" value={data.payment_details} onChange={(v: string) => handleChange('payment_details', v)} />
-          <Textarea label="Bank Details" value={data.bank_details} onChange={(v: string) => handleChange('bank_details', v)} />
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-slate-300">Bank Details</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <Input label="Beneficiary Name" value={data.bank_details?.beneficiaryName} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, beneficiaryName: v })} />
+              <Input label="Bank Name" value={data.bank_details?.bankName} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, bankName: v })} />
+              <Input label="Branch Name" value={data.bank_details?.branchName} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, branchName: v })} />
+              <Input label="Bank Address" value={data.bank_details?.bankAddress} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, bankAddress: v })} />
+              <Input label="Account Number" value={data.bank_details?.accountNumber} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, accountNumber: v })} />
+              <Input label="SWIFT Code" value={data.bank_details?.swiftCode} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, swiftCode: v })} />
+              <Input label="IBAN" value={data.bank_details?.iban} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, iban: v })} />
+              <Input label="Routing Number" value={data.bank_details?.routingNumber} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, routingNumber: v })} />
+              <Input label="Branch Code" value={data.bank_details?.branchCode} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, branchCode: v })} />
+              <div className="col-span-2">
+                <Textarea label="Currency Account Details" value={data.bank_details?.currencyAccountDetails} onChange={(v: string) => handleChange('bank_details', { ...data.bank_details, currencyAccountDetails: v })} />
+              </div>
+            </div>
+          </div>
           <Textarea label="Notes" value={data.notes} onChange={(v: string) => handleChange('notes', v)} />
         </div>
         <div className="space-y-4 bg-slate-800 p-6 rounded-xl border border-slate-700 md:col-span-2">

@@ -66,7 +66,11 @@ const dummyInvoice: InvoiceData = {
   currency: "USD",
   notes: "Thank you for your business.",
   payment_details: "Please pay within 30 days.",
-  bank_details: "Bank: Global Bank\nAccount: 123456789\nSWIFT: GBANKUS33",
+  bank_details: {
+    bankName: "Global Bank",
+    accountNumber: "123456789",
+    swiftCode: "GBANKUS33"
+  },
   template_settings: {
     id: 'minimal',
     primaryColor: '#0f172a',

@@ -5,12 +5,21 @@ export interface CompanyInfo {
   phone: string;
   email: string;
   taxId?: string;
+  registrationNumber?: string;
   website?: string;
+}
+
+export interface BankDetails {
+  beneficiaryName?: string;
   bankName?: string;
+  branchName?: string;
   bankAddress?: string;
-  accountName?: string;
   accountNumber?: string;
   swiftCode?: string;
+  iban?: string;
+  routingNumber?: string;
+  branchCode?: string;
+  currencyAccountDetails?: string;
 }
 
 export interface InvoiceItem {
@@ -28,6 +37,11 @@ export interface InvoiceItem {
   netWeight?: string;
   grossWeight?: string;
   cbm?: string;
+  origin?: string;
+  material?: string;
+  dimensions?: string;
+  color?: string;
+  remarks?: string;
 }
 
 export interface InvoiceMeta {
@@ -35,6 +49,10 @@ export interface InvoiceMeta {
   issueDate: string;
   dueDate: string;
   type: 'commercial' | 'proforma' | 'packing_list' | 'standard';
+  quotationNumber?: string;
+  poNumber?: string;
+  customerReference?: string;
+  contractReference?: string;
   incoterm?: string;
   paymentTerm?: string;
   shipmentMethod?: string;
@@ -52,6 +70,9 @@ export interface CommercialTerms {
   deliveryLeadTime?: string;
   packagingTerms?: string;
   warrantyTerms?: string;
+  hsCode?: string;
+  deliveryTerms?: string;
+  remarks?: string;
 }
 
 export interface TemplateSettings {
@@ -92,7 +113,7 @@ export interface InvoiceData {
   total: number;
   notes: string;
   payment_details: string;
-  bank_details: string;
+  bank_details?: BankDetails;
   commercial_terms?: CommercialTerms;
   qr_payment_link?: string;
   logo?: string;

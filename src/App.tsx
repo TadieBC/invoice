@@ -106,7 +106,36 @@ export default function App() {
           useCORS: true,
           letterRendering: true,
           scrollY: 0,
-          windowWidth: 800 // Force width to match preview
+          windowWidth: 800, // Force width to match preview
+          onclone: (clonedDoc: Document, clonedElement: HTMLElement) => {
+            // Fix unsupported color functions (oklch, color-mix, etc.) by applying computed styles
+            const originalElements = element.querySelectorAll('*');
+            const clonedElements = clonedElement.querySelectorAll('*');
+            
+            // Apply to root element too
+            const rootComputed = window.getComputedStyle(element);
+            clonedElement.style.color = rootComputed.color;
+            clonedElement.style.backgroundColor = rootComputed.backgroundColor;
+            clonedElement.style.borderColor = rootComputed.borderColor;
+
+            for (let i = 0; i < originalElements.length; i++) {
+              const orig = originalElements[i] as HTMLElement;
+              const clone = clonedElements[i] as HTMLElement;
+              if (!orig || !clone) continue;
+              
+              const computed = window.getComputedStyle(orig);
+              // html2canvas struggles with oklch/color-mix, but getComputedStyle resolves them to rgb/rgba
+              clone.style.color = computed.color;
+              clone.style.backgroundColor = computed.backgroundColor;
+              clone.style.borderColor = computed.borderColor;
+              
+              // Also fix SVG strokes and fills
+              if (orig instanceof SVGElement) {
+                clone.style.fill = computed.fill;
+                clone.style.stroke = computed.stroke;
+              }
+            }
+          }
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
       };
@@ -116,7 +145,14 @@ export default function App() {
       await (html2pdf as any)().set(opt).from(element).save();
     } catch (err) {
       console.error('PDF generation failed:', err);
-      alert('Failed to generate PDF. Please try again or use the Print option.');
+      // Fallback retry logic
+      try {
+        console.log('Attempting fallback PDF generation...');
+        handlePrint(); // Fallback to browser print dialog
+      } catch (fallbackErr) {
+        console.error('Fallback also failed:', fallbackErr);
+        alert('Failed to generate PDF. Please try again or use the Print option.');
+      }
     } finally {
       setIsDownloading(false);
     }
@@ -128,9 +164,12 @@ export default function App() {
     try {
       const data = await generateInvoiceData(prompt, files, invoice);
       
-      // Preserve logo if it exists
+      // Preserve logo and qr_payment_link if they exist
       if (invoice?.logo && !data.logo) {
         data.logo = invoice.logo;
+      }
+      if (invoice?.qr_payment_link && !data.qr_payment_link) {
+        data.qr_payment_link = invoice.qr_payment_link;
       }
       
       setInvoice(data);
